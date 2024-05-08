@@ -5,7 +5,7 @@ class CheckersGame:
         ]
         self.setup_board()
         self.current_player = 'W'
-        self.opponent = 'B' 
+        self.opponent = 'B'
 
     def setup_board(self):
         for row in range(3):
@@ -58,8 +58,8 @@ class CheckersGame:
         if len(opponent_moves) == 0:
             score += 10  
         for move in self.get_legal_moves():
-            if abs(move[0] - move[2]) > 1:  
-                score += 5  
+            if abs(move[0] - move[2]) > 1: 
+                score += 5 
             if self.is_safe_move(move): 
                 score += 3  
         return score
@@ -78,7 +78,7 @@ class CheckersGame:
                         if row < 7 and col < 7:
                             if self.board[row + 1][col + 1] == '.':
                                 legal_moves.append((row, col, row + 1, col + 1))
-                    else:  
+                    else: 
                         if row > 0 and col > 0:
                             if self.board[row - 1][col - 1] == '.':
                                 legal_moves.append((row, col, row - 1, col - 1))
@@ -90,13 +90,44 @@ class CheckersGame:
     def is_safe_move(self, move):
         _, _, end_row, end_col = move
         if end_row == 0 or end_row == 7 or end_col == 0 or end_col == 7:
-            return True  
+            return True 
         return False
 
     def minimax(self, depth, alpha, beta, maximizing_player):
-        pass
+        if depth == 0 or self.game_over():  
+            return self.evaluate_board(), None
+
+        if maximizing_player:
+            max_eval = float('-inf')
+            best_move = None
+            for move in self.get_legal_moves():
+                self.make_move(move)
+                eval, _ = self.minimax(depth - 1, alpha, beta, False)
+                self.undo_move(move)
+                max_eval = max(max_eval, eval)
+                if max_eval == eval:
+                    best_move = move
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval, best_move
+        else:
+            min_eval = float('inf')
+            for move in self.get_legal_moves_for_opponent():
+                self.make_move(move)
+                eval, _ = self.minimax(depth - 1, alpha, beta, True)
+                self.undo_move(move)
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval, None
 
     def get_best_move(self, depth):
+        _, best_move = self.minimax(depth, float('-inf'), float('inf'), True)
+        return best_move
+
+    def game_over(self):
         pass
 
 
@@ -104,3 +135,4 @@ game = CheckersGame()
 game.print_board()
 evaluation_result = game.evaluate_board()
 print("Evaluation result:", evaluation_result)
+
