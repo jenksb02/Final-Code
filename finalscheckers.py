@@ -5,6 +5,7 @@ class CheckersGame:
         ]
         self.setup_board()
         self.current_player = 'W'
+        self.opponent = 'B' 
 
     def setup_board(self):
         for row in range(3):
@@ -32,7 +33,7 @@ class CheckersGame:
                         if row > 0 and col < 7:
                             if self.board[row - 1][col + 1] == '.':
                                 legal_moves.append((row, col, row - 1, col + 1))
-                    else:  
+                    else: 
                         if row < 7 and col > 0:
                             if self.board[row + 1][col - 1] == '.':
                                 legal_moves.append((row, col, row + 1, col - 1))
@@ -53,13 +54,44 @@ class CheckersGame:
 
     def evaluate_board(self):
         score = 0
+        opponent_moves = self.get_legal_moves_for_opponent()
+        if len(opponent_moves) == 0:
+            score += 10  
+        for move in self.get_legal_moves():
+            if abs(move[0] - move[2]) > 1:  
+                score += 5  
+            if self.is_safe_move(move): 
+                score += 3  
+        return score
+
+    def get_legal_moves_for_opponent(self):
+        legal_moves = []
+        opponent = 'W' if self.current_player == 'B' else 'B'
         for row in range(8):
             for col in range(8):
-                if self.board[row][col] == self.current_player:
-                    score += 1  
-                elif self.board[row][col] == self.opponent:  
-                    score -= 1
-        return score
+                piece = self.board[row][col]
+                if piece == opponent:
+                    if opponent == 'W':
+                        if row < 7 and col > 0:
+                            if self.board[row + 1][col - 1] == '.':
+                                legal_moves.append((row, col, row + 1, col - 1))
+                        if row < 7 and col < 7:
+                            if self.board[row + 1][col + 1] == '.':
+                                legal_moves.append((row, col, row + 1, col + 1))
+                    else:  
+                        if row > 0 and col > 0:
+                            if self.board[row - 1][col - 1] == '.':
+                                legal_moves.append((row, col, row - 1, col - 1))
+                        if row > 0 and col < 7:
+                            if self.board[row - 1][col + 1] == '.':
+                                legal_moves.append((row, col, row - 1, col + 1))
+        return legal_moves
+
+    def is_safe_move(self, move):
+        _, _, end_row, end_col = move
+        if end_row == 0 or end_row == 7 or end_col == 0 or end_col == 7:
+            return True  
+        return False
 
     def minimax(self, depth, alpha, beta, maximizing_player):
         pass
@@ -70,6 +102,5 @@ class CheckersGame:
 
 game = CheckersGame()
 game.print_board()
-legal_moves = game.get_legal_moves()
-print("Legal moves:", legal_moves)
-
+evaluation_result = game.evaluate_board()
+print("Evaluation result:", evaluation_result)
